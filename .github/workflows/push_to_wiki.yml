@@ -42,7 +42,7 @@ jobs:
 
       - name: Prepare files and sidebar
         run: |
-          python3 -c "
+          python3 -c """
 import os
 def create_sidebar(parent, sidebar, level=0):
     for item in sorted(os.listdir(parent)):
@@ -51,14 +51,14 @@ def create_sidebar(parent, sidebar, level=0):
             if level == 0:
                 sidebar.write(f'▪ {item.upper()}\n\n')
             else:
-                sidebar.write(f'{level * \" \"} - {item}\n\n')
+                sidebar.write(f'{level * " "} - {item}\n\n')
             create_sidebar(path, sidebar, level + 1)
         elif item.endswith('.md') and item != '_Sidebar.md':
-            sidebar.write(f'{level * \" \"} - [{item[:-3]}]({parent.replace(\"wiki/\", \"\")}/{item})\n')
+            sidebar.write(f'{level * " "} - [{item[:-3]}]({parent.replace("wiki/", "")}/{item})\n')
 parent = 'wiki'
 with open(os.path.join(parent, '_Sidebar.md'), 'w') as sidebar:
     create_sidebar(parent, sidebar)
-"
+"""
 
       - name: Push content to wiki
         run: |
