@@ -1,0 +1,71 @@
+name: Publish docs to Wiki
+
+on:
+  push:
+    paths:
+      - wiki/**
+    branches:
+      - main
+
+env:
+  DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+  USER_NAME: lovelaced
+  USER_EMAIL: erin@parity.io
+  OWNER: ${{ github.event.repository.owner.name }}
+  REPOSITORY_NAME: ${{ github.event.repository.name }}
+
+jobs:
+  publish_docs_to_wiki:
+    name: Publish docs to Wiki
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up SSH
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOY_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Pull content from wiki
+        run: |
+          mkdir tmp_wiki
+          cd tmp_wiki
+          git init
+          git config user.name $USER_NAME
+          git config user.email $USER_EMAIL
+          git pull git@github.com:$OWNER/$REPOSITORY_NAME.wiki.git
+
+      - name: Prepare files and sidebar
+        run: |
+          python3 -c "
+import os
+def create_sidebar(parent, sidebar, level=0):
+    for item in sorted(os.listdir(parent)):
+        path = os.path.join(parent, item)
+        if os.path.isdir(path):
+            if level == 0:
+                sidebar.write(f'▪ {item.upper()}\n\n')
+            else:
+                sidebar.write(f'{level * ' '} - {item}\n\n')
+            create_sidebar(path, sidebar, level + 1)
+        elif item.endswith('.md') and item != '_Sidebar.md':
+            sidebar.write(f'{level * ' '} - [{item[:-3]}]({parent.replace('wiki/', '')}/{item})\n')
+parent = 'wiki'
+with open(os.path.join(parent, '_Sidebar.md'), 'w') as sidebar:
+          create_sidebar(parent, sidebar)
+
+rsync -av --delete wiki/ tmp_wiki/ --exclude .git
+"
+
+      - name: Push content to wiki
+        run: |
+          cd tmp_wiki
+          git add .
+          git commit -m "Update Wiki content and sidebar"
+          git push -f --set-upstream git@github.com:$OWNER/$REPOSITORY_NAME.wiki.git master
+
