@@ -12,7 +12,8 @@ def create_sidebar(parent, sidebar, level=0):
                 sidebar.write(f'\n{indent}- {item}\n')
             create_sidebar(path, sidebar, level + 1)
         elif item.endswith('.md') and item != '_Sidebar.md':
-            sidebar.write(f'{indent}- [{item[:-3]}]({parent.replace("wiki/", "")}/{item})\n')
+            # Remove the ".md" extension from the links in the sidebar
+            sidebar.write(f'{indent}- [{item[:-3]}]({parent.replace("wiki/", "")}/{item[:-3]})\n')
 
     if level == 0:
         sidebar.write('\n')
