@@ -1,6 +1,6 @@
 import os
 
-def create_sidebar(parent, sidebar, level=0, prefix=''):
+def create_sidebar(parent, sidebar, level=0):
     indent = '  ' * level
 
     for item in sorted(os.listdir(parent)):
@@ -10,10 +10,10 @@ def create_sidebar(parent, sidebar, level=0, prefix=''):
                 sidebar.write(f'\n{indent}**{item.upper()}**\n\n')
             else:
                 sidebar.write(f'\n{indent}- {item}\n')
-            create_sidebar(path, sidebar, level + 1, prefix=f'{prefix}{item}/')
+            create_sidebar(path, sidebar, level + 1)
         elif item.endswith('.md') and item != '_Sidebar.md':
             # Remove the ".md" extension and folder names from the links in the sidebar
-            sidebar.write(f'{indent}- [{item[:-3]}]({prefix}{item[:-3]})\n')
+            sidebar.write(f'{indent}- [{item[:-3]}]({item[:-3]})\n')
 
     if level == 0:
         sidebar.write('\n')
