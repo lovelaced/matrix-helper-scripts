@@ -5,7 +5,7 @@ on:
     paths:
       - wiki/**
     branches:
-      - main
+      - master
 
 env:
   DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
